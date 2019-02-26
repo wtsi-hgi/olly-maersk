@@ -5,3 +5,8 @@ This provides the configuration and shims required to run jobs under
 executor, with the option of running jobs containerised in Singularity
 or Docker containers. It "massages" Cromwell's assumptions about Docker,
 such that prebaked Dockerised workflows should work without change.
+
+**TODO**
+
+- [ ] Containerisation-agnostic wrapper script
+- [ ] Cromwell configuration

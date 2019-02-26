@@ -64,15 +64,21 @@ mode_singularity() {
   #@
   #@ Options:
   #@
-  #@   CONTAINER          Docker container identifier
-  #@   --mount DIRECTORY  Directory to mount (optional)
-  #@   --mounts FILE      File of mount points, one per line (optional)
+  #@   CONTAINER      Docker container identifier
+  #@   --mount MOUNT  Mount point (optional)
+  #@   --mounts FILE  File of mount points, one per line (optional)
   #@
   #@ The CONTAINER may be a local image, shub:// or docker:// URI.
-  #@ Multiple DIRECTORY mounts may be specified, with or without a file
-  #@ of mount points.
+  #@ Multiple MOUNTs may be specified, with or without a file of mount
+  #@ points; the format of which is as those understood by Singularity.
   # n.b., This is just a special-case of the vanilla-LSF mode
-  true
+  if (( $# < 2 )); then
+    stderr "Not enough arguments provided for Singularity mode!"
+    usage
+    exit 1
+  fi
+
+  # TODO
 }
 
 mode_docker() {
@@ -80,13 +86,14 @@ mode_docker() {
   #@
   #@ Options:
   #@
-  #@   CONTAINER          Docker container identifier
-  #@   --mount DIRECTORY  Directory to mount (optional)
-  #@   --mounts FILE      File of mount points, one per line (optional)
+  #@   CONTAINER      Docker container identifier
+  #@   --mount MOUNT  Mount point (optional)
+  #@   --mounts FILE  File of mount points, one per line (optional)
   #@
   #@ The CONTAINER may be a local image or one provided by DockerHub, or
-  #@ some other recognised repository. Multiple DIRECTORY mounts may be
-  #@ specified, with or without a file of mount points.
+  #@ some other recognised repository. Multiple MOUNTs may be specified,
+  #@ with or without a file of mount points; the format of which is as
+  #@ those understood by Docker.
   # n.b., This is just a special-case of the Singularity mode
   if (( $# < 2 )); then
     stderr "Not enough arguments provided for Docker mode!"

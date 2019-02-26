@@ -10,6 +10,8 @@ readonly PROGNAME="$(basename "${BINARY}")"
 
 stderr() {
   local message="$*"
+
+  [[ -t 2 ]] && message="$(tput setaf 1)${message}$(tput sgr0)"
   >&2 echo "${message}"
 }
 
@@ -90,8 +92,21 @@ mode_docker() {
 }
 
 main() {
-  # TODO
-  usage
+  if (( $# < 2 )); then
+    stderr "Not enough arguments provided!"
+    usage
+    exit 1
+  fi
+
+  local mode="$1"
+  if ! grep -Fq "mode_${mode}() {" "${BINARY}"; then
+    stderr "No such mode \"${mode}\"!"
+    usage
+    exit 1
+  fi
+
+  local -a args=("${@:2}")
+  "mode_${mode}" "${args[@]}"
 }
 
 main "$@"

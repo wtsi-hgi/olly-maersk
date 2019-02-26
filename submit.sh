@@ -17,7 +17,7 @@ stderr() {
 
 usage() {
   cat <<-EOF
-	Usage: ${PROGNAME} MODE [OPTIONS...] COMMAND [COMMAND OPTIONS...]
+	Usage: ${PROGNAME} MODE [MODE OPTIONS...] COMMAND [COMMAND OPTIONS...]
 	
 	Common Options (available to all MODEs):
 	
@@ -88,7 +88,15 @@ mode_docker() {
   #@ some other recognised repository. Multiple DIRECTORY mounts may be
   #@ specified, with or without a file of mount points.
   # n.b., This is just a special-case of the Singularity mode
-  true
+  if (( $# < 2 )); then
+    stderr "Not enough arguments provided for Docker mode!"
+    usage
+    exit 1
+  fi
+
+  local container="docker://$1"
+  local -a args=("${@:2}")
+  mode_singularity "${container}" "${args[@]}"
 }
 
 main() {

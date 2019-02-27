@@ -24,12 +24,13 @@ usage() {
 	
 	Common Options (available to all MODEs):
 	
-	  --group GROUP    The Fairshare group under which to run
-	  --queue QUEUE    LSF queue in which to run [default: normal]
-	  --cores CORES    The number of cores required [default: 1]
-	  --memory MEMORY  The memory required, in MB [default: 1000]
-	  --stdout FILE    Where to write the job's stdout stream
-	  --stderr FILE    Where to write the job's stderr stream
+	  --group GROUP        The Fairshare group under which to run
+	  --queue QUEUE        LSF queue in which to run [default: normal]
+	  --cores CORES        The number of cores required [default: 1]
+	  --memory MEMORY      The memory required, in MB [default: 1000]
+	  --working DIRECTORY  The working directory [default: current]
+	  --stdout FILE        Where to write the job's stdout stream
+	  --stderr FILE        Where to write the job's stderr stream
 	
 	The following MODEs are available:
 	EOF

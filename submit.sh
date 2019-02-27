@@ -17,7 +17,10 @@ stderr() {
 
 usage() {
   cat <<-EOF
-	Usage: ${PROGNAME} MODE [MODE OPTIONS...] COMMAND [COMMAND OPTIONS...]
+	Usage: ${PROGNAME} MODE [MODE OPTIONS...] -- COMMAND [COMMAND OPTIONS...]
+	
+	Note that the -- sentinal must be present, to delimit the MODE options
+	and the COMMAND (and its options, if any) you are intending to submit.
 	
 	Common Options (available to all MODEs):
 	
@@ -72,7 +75,7 @@ mode_singularity() {
   #@ Multiple MOUNTs may be specified, with or without a file of mount
   #@ points; the format of which is as those understood by Singularity.
   # n.b., This is just a special-case of the vanilla-LSF mode
-  if (( $# < 2 )); then
+  if (( $# < 3 )); then
     stderr "Not enough arguments provided for Singularity mode!"
     usage
     exit 1
@@ -95,7 +98,7 @@ mode_docker() {
   #@ with or without a file of mount points; the format of which is as
   #@ those understood by Docker.
   # n.b., This is just a special-case of the Singularity mode
-  if (( $# < 2 )); then
+  if (( $# < 3 )); then
     stderr "Not enough arguments provided for Docker mode!"
     usage
     exit 1
@@ -107,7 +110,7 @@ mode_docker() {
 }
 
 main() {
-  if (( $# < 2 )); then
+  if (( $# < 3 )); then
     stderr "Not enough arguments provided!"
     usage
     exit 1

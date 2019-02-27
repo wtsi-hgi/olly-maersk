@@ -19,8 +19,8 @@ usage() {
   cat <<-EOF
 	Usage: ${PROGNAME} MODE [MODE OPTIONS...] -- COMMAND [COMMAND OPTIONS...]
 	
-	Note that the -- sentinal must be present, to delimit the MODE options
-	and the COMMAND (and its options, if any) you are intending to submit.
+	Note that the -- sentinal must be present, to delimit the MODE and the
+	COMMAND (and its options, if any) you are intending to submit.
 	
 	Common Options (available to all MODEs):
 	
@@ -59,8 +59,8 @@ usage() {
 }
 
 mode_vanilla() {
-  #@ Submit your job directly on the execution node of the LSF cluster
   true
+  #@ Submit your job directly to an execution node on the LSF cluster
 }
 
 mode_singularity() {
@@ -73,7 +73,7 @@ mode_singularity() {
   #@   --mounts FILE  File of mount points, one per line (optional)
   #@
   #@ The CONTAINER may be a local image, shub:// or docker:// URI.
-  #@ Multiple MOUNTs may be specified, with or without a file of mount
+  #@ Multiple MOUNTs may be specified, with or without a FILE of mount
   #@ points; the format of which is as those understood by Singularity.
   # n.b., This is just a special-case of the vanilla-LSF mode
   if (( $# < 3 )); then
@@ -96,7 +96,7 @@ mode_docker() {
   #@
   #@ The CONTAINER may be a local image or one provided by DockerHub, or
   #@ some other recognised repository. Multiple MOUNTs may be specified,
-  #@ with or without a file of mount points; the format of which is as
+  #@ with or without a FILE of mount points; the format of which is as
   #@ those understood by Docker.
   # n.b., This is just a special-case of the Singularity mode
   if (( $# < 3 )); then

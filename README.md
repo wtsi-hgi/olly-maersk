@@ -8,5 +8,5 @@ such that prebaked Dockerised workflows should work without change.
 
 **TODO**
 
-- [ ] Containerisation-agnostic wrapper script
+- [X] Containerisation-agnostic wrapper script
 - [ ] Cromwell configuration

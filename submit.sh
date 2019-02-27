@@ -59,8 +59,83 @@ usage() {
 }
 
 mode_vanilla() {
-  true
   #@ Submit your job directly to an execution node on the LSF cluster
+  if (( $# < 2 )); then
+    stderr "Not enough options provided for submission!"
+    usage
+    exit 1
+  fi
+
+  local _opt
+  local group
+  local queue="normal"
+  local -i cores=1
+  local -i memory=1000
+  local working="$(pwd)"
+  local stdout
+  local stderr
+  local -i bashify=1
+  local -i found_command=0
+  local -i empty_command=1
+  local -a job_command
+
+  while (( $# )); do
+    if ! (( found_command )); then
+      case "$1" in
+        "--")
+          # Found the sentinal
+          found_command=1
+          (( bashify )) && job_command+=("/usr/bin/env" "bash")
+          ;;
+
+        "--no-bashify")
+          # Undocumented option that prevents the command being executed
+          # as an argument to Bash, which we'd normally want because
+          # Cromwell doesn't +x its scripts
+          bashify=0
+          ;;
+
+        "--group" | "--queue" | "--cores" | "--memory" | "--working" | "--stdout" | "--stderr")
+          if (( $# < 2 )); then
+            stderr "Invalid value provided to $1 option!"
+            usage
+            exit 1
+          fi
+
+          _opt="${1:2}"          # Strip the -- prefix
+          eval "${_opt}=\"$2\""  # Yeah, I went there...
+
+          shift
+          ;;
+
+        *)
+          stderr "Unrecognised option \"$1\"!"
+          usage
+          exit 1
+          ;;
+      esac
+    else
+      # Append to the job command
+      empty_command=0
+      job_command+=("$1")
+    fi
+
+    shift
+  done
+
+  if (( empty_command )) || [[ -z "${group+x}" ]] || [[ -z "${stdout+x}" ]] || [[ -z "${stderr+x}" ]]; then
+    stderr "Incomplete options provided for submission!"
+    usage
+    exit 1
+  fi
+
+  local resource_request="span[hosts=1] select[mem>${memory}] rusage[mem=${memory}]"
+  bsub -G "${group}" \
+       -o "${stdout}" -e "${stderr}" \
+       -q "${queue}" \
+       -cwd "${working}" \
+       -n "${cores}" -M "${memory}" -R "${resource_request}" \
+       "${job_command[@]}"
 }
 
 mode_singularity() {
@@ -77,7 +152,7 @@ mode_singularity() {
   #@ points; the format of which is as those understood by Singularity.
   # n.b., This is just a special-case of the vanilla-LSF mode
   if (( $# < 3 )); then
-    stderr "Not enough arguments provided for Singularity mode!"
+    stderr "Not enough options provided for Singularity mode!"
     usage
     exit 1
   fi
@@ -100,7 +175,7 @@ mode_docker() {
   #@ those understood by Docker.
   # n.b., This is just a special-case of the Singularity mode
   if (( $# < 3 )); then
-    stderr "Not enough arguments provided for Docker mode!"
+    stderr "Not enough options provided for Docker mode!"
     usage
     exit 1
   fi
@@ -112,7 +187,7 @@ mode_docker() {
 
 main() {
   if (( $# < 3 )); then
-    stderr "Not enough arguments provided!"
+    stderr "Not enough options provided!"
     usage
     exit 1
   fi

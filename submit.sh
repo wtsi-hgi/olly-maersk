@@ -24,6 +24,7 @@ usage() {
 	
 	Common Options (available to all MODEs):
 	
+	  --name NAME          The name to give a job
 	  --group GROUP        The Fairshare group under which to run
 	  --queue QUEUE        LSF queue in which to run [default: normal]
 	  --cores CORES        The number of cores required [default: 1]
@@ -67,6 +68,7 @@ mode_vanilla() {
   fi
 
   local _opt
+  local name
   local group
   local queue="normal"
   local -i cores=1
@@ -95,7 +97,7 @@ mode_vanilla() {
           bashify=0
           ;;
 
-        "--group" | "--queue" | "--cores" | "--memory" | "--working" | "--stdout" | "--stderr")
+        "--name" | "--group" | "--queue" | "--cores" | "--memory" | "--working" | "--stdout" | "--stderr")
           if (( $# < 2 )); then
             stderr "Invalid value provided to $1 option!"
             usage
@@ -123,17 +125,18 @@ mode_vanilla() {
     shift
   done
 
-  if (( empty_command )) || [[ -z "${group+x}" ]] || [[ -z "${stdout+x}" ]] || [[ -z "${stderr+x}" ]]; then
+  if (( empty_command )) || [[ -z "${name+x}" ]] || [[ -z "${group+x}" ]] || [[ -z "${stdout+x}" ]] || [[ -z "${stderr+x}" ]]; then
     stderr "Incomplete options provided for submission!"
     usage
     exit 1
   fi
 
   local resource_request="span[hosts=1] select[mem>${memory}] rusage[mem=${memory}]"
-  bsub -G "${group}" \
-       -o "${stdout}" -e "${stderr}" \
+  bsub -J "${name}" \
+       -G "${group}" \
        -q "${queue}" \
        -cwd "${working}" \
+       -o "${stdout}" -e "${stderr}" \
        -n "${cores}" -M "${memory}" -R "${resource_request}" \
        "${job_command[@]}"
 }

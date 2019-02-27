@@ -157,7 +157,76 @@ mode_singularity() {
     exit 1
   fi
 
-  # TODO
+  local _mount_point
+  local working="$(pwd)"
+  local -a lsf_args
+  local -a singularity_args=(--contain)
+  local -a job_command
+  local -i found_command=0
+  local -i empty_command=1
+
+  # The first argument is always the container identifier
+  local container="$1"
+  shift
+
+  while (( $# )); do
+    if ! (( found_command )); then
+      case "$1" in
+        "--")
+          # Found the sentinal
+          found_command=1
+          ;;
+
+        "--working")
+          [[ -z "${2+x}" ]] && break  # Check value exists
+          working="$2"                # We only want one
+          shift
+          ;;
+
+        "--mount")
+          [[ -z "${2+x}" ]] && break  # Check value exists
+          singularity_args+=(--bind "$2")
+          shift
+          ;;
+
+        "--mounts")
+          [[ -z "${2+x}" ]] && break  # Check value exists
+
+          while read -r _mount_point; do
+            singularity_args+=(--bind "${_mount_point}")
+          done < "$2"
+
+          shift
+          ;;
+
+        *)
+          # Anything not recognised is passed to LSF
+          lsf_args+=("$1")
+          ;;
+      esac
+    else
+      # Append to the job command
+      empty_command=0
+      job_command+=("$1")
+    fi
+
+    shift
+  done
+
+  if (( empty_command )); then
+    stderr "Incomplete options provided for submission!"
+    usage
+    exit 1
+  fi
+
+  # Set working directory and also mount it, for the container, as well
+  # as passing it through to the vanilla-LSF submission
+  singularity_args+=(--bind "${working}" --pwd "${working}")
+  lsf_args+=(--working "${working}")
+
+  mode_vanilla "${lsf_args[@]}" --no-bashify -- \
+               singularity exec "${singularity_args[@]}" "${container}" \
+                                /usr/bin/env bash "${job_command[@]}"
 }
 
 mode_docker() {

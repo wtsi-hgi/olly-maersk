@@ -16,7 +16,7 @@ default value:
 | :----------- | :------- | :---------------------------------------------- |
 | `lsf_group`  |          | The Fairshare group under which to run the task |
 | `lsf_queue`  | `normal` | The LSF queue in which to run the task          |
-| `lsf_cores`  | 1        | The number of CPU cores required (default: 1)   |
+| `lsf_cores`  | 1        | The number of CPU cores required                |
 | `lsf_memory` | 1000     | The amount of memory (in MB) required           |
 
 These can be specified within a workflow task itself, or injected as

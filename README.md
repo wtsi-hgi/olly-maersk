@@ -1,4 +1,4 @@
-# LSF with Singularity Configuration for Cromwell
+# Containerisation-Agnostic LSF Provider for Cromwell
 
 This provides the configuration and shims required to run jobs under
 [Cromwell](https://cromwell.readthedocs.io/en/stable/), using LSF as an

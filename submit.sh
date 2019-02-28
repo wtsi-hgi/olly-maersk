@@ -146,9 +146,10 @@ mode_singularity() {
   #@
   #@ Options:
   #@
-  #@   CONTAINER      Docker container identifier
-  #@   --mount MOUNT  Mount point (optional)
-  #@   --mounts FILE  File of mount points, one per line (optional)
+  #@   CONTAINER                Singularity container identifier
+  #@   --container-working DIR  Working directory within the container (optional)
+  #@   --mount MOUNT            Mount point (optional)
+  #@   --mounts FILE            File of mount points, one per line (optional)
   #@
   #@ The CONTAINER may be a local image, shub:// or docker:// URI.
   #@ Multiple MOUNTs may be specified, with or without a FILE of mount
@@ -161,7 +162,6 @@ mode_singularity() {
   fi
 
   local _mount_point
-  local working="$(pwd)"
   local -a lsf_args
   local -a singularity_args=(--contain)
   local -a job_command
@@ -180,9 +180,9 @@ mode_singularity() {
           found_command=1
           ;;
 
-        "--working")
+        "--container-working")
           [[ -z "${2+x}" ]] && break  # Check value exists
-          working="$2"                # We only want one
+          singularity_args+=(--pwd "$2")
           shift
           ;;
 
@@ -222,11 +222,6 @@ mode_singularity() {
     exit 1
   fi
 
-  # Set working directory and also mount it, for the container, as well
-  # as passing it through to the vanilla-LSF submission
-  singularity_args+=(--bind "${working}" --pwd "${working}")
-  lsf_args+=(--working "${working}")
-
   mode_vanilla "${lsf_args[@]}" --no-bashify -- \
                singularity exec "${singularity_args[@]}" "${container}" \
                                 /usr/bin/env bash "${job_command[@]}"
@@ -237,9 +232,10 @@ mode_docker() {
   #@
   #@ Options:
   #@
-  #@   CONTAINER      Docker container identifier
-  #@   --mount MOUNT  Mount point (optional)
-  #@   --mounts FILE  File of mount points, one per line (optional)
+  #@   CONTAINER                Docker container identifier
+  #@   --container-working DIR  Working directory within the container (optional)
+  #@   --mount MOUNT            Mount point (optional)
+  #@   --mounts FILE            File of mount points, one per line (optional)
   #@
   #@ The CONTAINER may be a local image or one provided by DockerHub, or
   #@ some other recognised repository. Multiple MOUNTs may be specified,

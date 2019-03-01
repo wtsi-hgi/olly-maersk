@@ -1,4 +1,6 @@
-# Containerisation-Agnostic LSF Provider for Cromwell
+# Olly Maersk
+
+**Containerisation-agnostic LSF provider for Cromwell**
 
 This provides the configuration and shims required to run jobs under
 [Cromwell](https://cromwell.readthedocs.io/en/stable/), using LSF as an

@@ -29,6 +29,7 @@ usage() {
 	  --queue QUEUE        LSF queue in which to run [default: normal]
 	  --cores CORES        The number of cores required [default: 1]
 	  --memory MEMORY      The memory required, in MB [default: 1000]
+	  --resources RES_REQ  Additional LSF resource requirements (optional)
 	  --working DIRECTORY  The working directory [default: current]
 	  --stdout FILE        Where to write the job's stdout stream
 	  --stderr FILE        Where to write the job's stderr stream
@@ -73,6 +74,7 @@ mode_vanilla() {
   local queue="normal"
   local -i cores=1
   local -i memory=1000
+  local resource_request="span[hosts=1]"
   local working="$(pwd)"
   local stdout
   local stderr
@@ -97,15 +99,20 @@ mode_vanilla() {
           bashify=0
           ;;
 
-        "--name" | "--group" | "--queue" | "--cores" | "--memory" | "--working" | "--stdout" | "--stderr")
+        "--name" | "--group" | "--queue" | "--cores" | "--memory" | "--resources" | "--working" | "--stdout" | "--stderr")
           if (( $# < 2 )); then
             stderr "Invalid value provided to $1 option!"
             usage
             exit 1
           fi
 
-          _opt="${1:2}"          # Strip the -- prefix
-          eval "${_opt}=\"$2\""  # Yeah, I went there...
+          if [[ "$1" == "--resources" ]]; then
+            # Append to resource request
+            resource_request="${resource_request} $2"
+          else
+            _opt="${1:2}"          # Strip the -- prefix
+            eval "${_opt}=\"$2\""  # Yeah, I went there...
+          fi
 
           shift
           ;;
@@ -131,7 +138,8 @@ mode_vanilla() {
     exit 1
   fi
 
-  local resource_request="span[hosts=1] select[mem>${memory}] rusage[mem=${memory}]"
+  resource_request="${resource_request} select[mem>${memory}] rusage[mem=${memory}]"
+
   bsub -J "${name}" \
        -G "${group}" \
        -q "${queue}" \

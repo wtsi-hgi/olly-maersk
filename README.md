@@ -152,8 +152,12 @@ default value:
 | `lsf_cores`  | 1        | The number of CPU cores required                |
 | `lsf_memory` | 1000     | The amount of memory (in MB) required           |
 
-These can be specified within a workflow task itself, or injected as
-`default_runtime_attributes`.
+Additional LSF resource requirements can also be specified by providing
+an `lsf_resources` attribute. This is optional and its value takes the
+same format as that recognised by the `-R` flag to LSF's `bsub`.
+
+These attributes can be specified within a workflow task itself, or
+injected as `default_runtime_attributes`.
 
 ## Non-Containerised Workflows
 
@@ -185,7 +189,6 @@ ensure it is preserved on the host.
 - [ ] Better management around Cromwell's assumptions about Docker
       submissions.
 - [ ] Better interface for user-defined mount points for containers.
-- [ ] Allow arbitrary LSF resource allocation requirements.
 - [ ] Better (i.e., "less hacky") support for Singularity submissions.
 - [ ] Cache images built by Singularity, rather than littering them
       throughout Cromwell's execution working directories.

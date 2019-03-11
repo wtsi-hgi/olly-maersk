@@ -184,7 +184,8 @@ ensure it is preserved on the host.
 
 - [ ] Better management around Cromwell's assumptions about Docker
       submissions.
-- [ ] User-defined mount points for containers.
+- [ ] Better interface for user-defined mount points for containers.
+- [ ] Allow arbitrary LSF resource allocation requirements.
 - [ ] Better (i.e., "less hacky") support for Singularity submissions.
 - [ ] Cache images built by Singularity, rather than littering them
       throughout Cromwell's execution working directories.

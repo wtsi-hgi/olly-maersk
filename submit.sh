@@ -74,7 +74,7 @@ mode_vanilla() {
   local queue="normal"
   local -i cores=1
   local -i memory=1000
-  local resource_request="span[hosts=1]"
+  local -a resources=()
   local working="$(pwd)"
   local stdout
   local stderr
@@ -99,20 +99,31 @@ mode_vanilla() {
           bashify=0
           ;;
 
-        "--name" | "--group" | "--queue" | "--cores" | "--memory" | "--resources" | "--working" | "--stdout" | "--stderr")
+        "--name" | "--group" | "--queue" | "--cores" | "--memory" \
+          | "--resources" | "--working" | "--stdout" | "--stderr")
           if (( $# < 2 )); then
             stderr "Invalid value provided to $1 option!"
             usage
             exit 1
           fi
 
-          if [[ "$1" == "--resources" ]]; then
-            # Append to resource request
-            resource_request="${resource_request} $2"
-          else
-            _opt="${1:2}"          # Strip the -- prefix
-            eval "${_opt}=\"$2\""  # Yeah, I went there...
-          fi
+          _opt="${1:2}"  # Strip the "--" prefix
+
+          case "${_opt}" in
+            "resources")
+              # These are array-like options, that can be set multiple times
+              _opt="${_opt}+=(\"$2\")"
+              ;;
+
+            *)
+              # These are scalar options, that can be set only once
+              _opt="${_opt}=\"$2\""
+              ;;
+          esac
+
+          # FIXME Some sanity checking should probably be done here to
+          # avoid any potential code-injection attacks
+          eval "${_opt}"  # Yeah, I went there...
 
           shift
           ;;
@@ -138,14 +149,14 @@ mode_vanilla() {
     exit 1
   fi
 
-  resource_request="${resource_request} select[mem>${memory}] rusage[mem=${memory}]"
-
+  local resource_request="span[hosts=1] select[mem>${memory}] rusage[mem=${memory}]"
   bsub -J "${name}" \
        -G "${group}" \
        -q "${queue}" \
        -cwd "${working}" \
        -o "${stdout}" -e "${stderr}" \
-       -n "${cores}" -M "${memory}" -R "${resource_request}" \
+       -n "${cores}" -M "${memory}" \
+       -R "${resource_request}" -R "${resources[*]+"${resources[*]}"}" \
        "${job_command[@]}"
 }
 

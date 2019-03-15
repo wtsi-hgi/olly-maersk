@@ -3,6 +3,9 @@
 # Cromwell Containerisation-Agnostic Submission Wrapper
 # Christopher Harrison <ch12@sanger.ac.uk>
 
+# Copyright (c) 2019 Genomics Research Limited
+# Distributed under the GPLv3, or later
+
 set -euo pipefail
 
 readonly BINARY="$(readlink -fn "$0")"

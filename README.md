@@ -18,15 +18,30 @@ installed.
 
 There are four separate files you'll need to drive your workflow:
 
-1. The Cromwell configuration, which is provided in this repository and,
-   once set, should never need changing. (Note that our configuration
-   herein only defines the containerised LSF provider set up; if you
-   have additional configuration requirements, these must be added
-   manually.)
+1. The Cromwell configuration, including the configuration provided in
+   this repository to set the backend executor. A minimal working
+   example would look like:
+
+   ```hocon
+   include required(classpath("application"))
+
+   backend {
+     default = "ContainerisedLSF"
+
+     providers {
+       ContainerisedLSF {
+         include required("/path/to/containerised-lsf.inc.conf")
+       }
+     }
+   }
+   ```
+
 2. The actual workflow definition (WDL) file, itself.
+
 3. A workflow inputs file (JSON), which defines the variables used in
    the workflow definition (e.g., location of data files, etc.), if any.
    (If a workflow has no inputs, then this is not required.)
+
 4. A workflow options file (JSON), which defines how the workflow tasks
    ought to be run.
 
@@ -112,7 +127,7 @@ export PATH="/path/to/submission/shim:${PATH}"
 Putting these all together, to run the workflow, we arrive at the
 following command:
 
-    java -Dconfig.file=provider.conf -jar /path/to/cromwell.jar \
+    java -Dconfig.file=example.conf -jar /path/to/cromwell.jar \
          run -i example.inputs.json -o example.options.json example.wdl
 
 This runs Cromwell directly, rather than in server-mode, without an

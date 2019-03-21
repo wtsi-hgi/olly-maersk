@@ -199,6 +199,29 @@ as jobs, with the appropriate directories bind mounted. The output of
 the task will be written within the container, but the mounting will
 ensure it is preserved on the host.
 
+## Zombified Tasks
+
+Workflow tasks are submitted to LSF as jobs, which can die due to events
+raised by the scheduler itself (e.g., `bkill`, reaching the runtime
+limit, etc.) If such a job fails ungracefully, then Cromwell is not able
+to identify that the encapsulated task has failed and will thus wait
+indefinitely, in vain, for it to be reanimated.
+
+To get around this problem, `zombie-killer.sh` will check the status of
+all currently running workflows' tasks, by querying the Cromwell API
+(i.e., this can only work when Cromwell is run in server-mode). If it
+finds any tasks which are associated with dead jobs, which haven't been
+gracefully closed off, it will forcibly mark them as completed (and
+failed).
+
+This script ought to be run periodically (e.g., an hourly `cron` job) to
+clean up failures:
+
+    ./zombie-killer.sh CROMWELL_WORKFLOW_API_URL
+
+Where `CROMWELL_WORKFLOW_API_URL` is the full URL to Cromwell's RESTful
+API workflow root (e.g., `http://cromwell:8000/api/workflows/v1`)
+
 ## To Do...
 
 - [ ] Better management around Cromwell's assumptions about Docker

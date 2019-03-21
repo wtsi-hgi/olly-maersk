@@ -117,8 +117,8 @@ runtime defaults in a workflow options file:
 }
 ```
 
-To ensure that our submission shim is available to Cromwell, we must
-first add it to our `PATH` environment variable:
+To ensure that our submission shim (`submit.sh`) is available to
+Cromwell, we must first add it to our `PATH` environment variable:
 
 ```bash
 export PATH="/path/to/submission/shim:${PATH}"

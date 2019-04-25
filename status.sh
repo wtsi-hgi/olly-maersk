@@ -8,6 +8,8 @@ set -euo pipefail
 readonly BINARY="$(readlink -fn "$0")"
 readonly PROG_NAME="$(basename "${BINARY}")"
 
+readonly TAB=$'\t'
+
 declare EXECUTION_ROOT="${EXECUTION_ROOT-$(pwd)/cromwell-executions}"
 
 usage() {
@@ -23,17 +25,23 @@ usage() {
 }
 
 lfs_job_status() {
-  # Return the status of an LSF job (or NOTFOUND if not found)
-  # n.b., NOTFOUND jobs may be because they've ended and dropped out of
-  # the LSF log rotation (either that or they never existed in the first
-  # place); their actual status may therefore be available using bhist,
-  # but this is costly and also subject to LSF's log rotation.
+  # Return the status of an LSF job as a tab-delimited string of LSF
+  # status, execution host, start time and finish time. A dash is used
+  # for any fields where such information is not available, including
+  # jobs which are not found. (Note that jobs that have ended and
+  # dropped out of the LSF log rotation won't be found -- presuming they
+  # existed at all -- their actual status may be available using bhist,
+  # but this is costly and also subject to LSF's log rotation.)
+
   # n.b., This only works correctly for scalar jobs, but that's all
   # we're dealing with so it's totally fine.
   local job_id="$1"
-  local status="$(bjobs -noheader -o "stat" "${job_id}" 2>/dev/null)"
+  local not_found="-${TAB}-${TAB}-${TAB}-"
 
-  echo "${status:-NOTFOUND}"
+  local headers="stat exec_host start_time finish_time delimiter='${TAB}'"
+  local status="$(bjobs -noheader -o "${headers}" "${job_id}" 2>/dev/null)"
+
+  echo "${status:-${not_found}}"
 }
 
 main() {

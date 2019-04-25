@@ -227,6 +227,26 @@ clean up failures:
 Where `CROMWELL_WORKFLOW_API_URL` is the full URL to Cromwell's RESTful
 API workflow root (e.g., `http://cromwell:8000/api/workflows/v1`)
 
+## Status Logging
+
+The Cromwell executions directory can quickly become tiresome to
+navigate, in order to manually construct the status of your running or
+historical workflows. As such, the `status.sh` serves to give an
+overview of any subset of workflows that Cromwell has executed.
+
+Usage:
+
+    ./status.sh [WORKFLOW_ID_PREFIX...]
+
+The `WORKFLOW_ID_PREFIX` can be omitted to show everything under the
+execution root directory, specified one-or-more times for particular
+workflows, and needn't be complete (i.e., it will only report on
+workflows whose IDs match the given prefix).
+
+By default, the script will look for the execution root directory in
+`cromwell-executions`, in the current working directory. This may be
+overridden by setting the `EXECUTION_ROOT` environment variable.
+
 ## To Do...
 
 - [ ] Better management around Cromwell's assumptions about Docker

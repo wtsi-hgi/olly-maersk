@@ -14,13 +14,13 @@ declare EXECUTION_ROOT="${EXECUTION_ROOT-$(pwd)/cromwell-executions}"
 
 usage() {
   cat <<-EOF
-	Usage: ${PROG_NAME} [WORKFLOW_ID_PREFIX...]
+	Usage: ${PROG_NAME} WORKFLOW_NAME [RUN_ID_PREFIX...]
 	
-	Overview report on the status of Cromwell executions, given by the
-	optional WORKFLOW_ID_PREFIX. Note that this can be omitted, to show the
-	status of all workflow executions; needn't be complete, to only report
-	on workflows whose IDs match the given prefix; and may be specified
-	multiple times.
+	Overview report on the status of Cromwell workflow executions, given by
+	the WORKFLOW_NAME. The RUN_ID_PREFIX can be omitted to show every run
+	for the given workflow, or specified one-or-more times for particular
+	runs; it needn't be complete (i.e., it will only report on runs whose
+	IDs match the given prefix).
 	EOF
 }
 
@@ -44,23 +44,20 @@ lfs_job_status() {
   echo "${status:-${not_found}}"
 }
 
+# NOTES
+# stdout.background contains the LSF job ID, if it's been submitted
+# rc contains the exit code, if it's ended gracefully
+
 main() {
-  local -a workflow_id_prefices=()
+  if ! (( $# )); then
+    usage
+    exit 1
+  fi
 
-  while (( $# )); do
-    case "$1" in
-      "-h" | "--help")
-        usage
-        exit
-        ;;
+  local workflow_name="$1"
 
-      *)
-        workflow_id_prefices+=("$1")
-        ;;
-    esac
-
-    shift
-  done
+  shift
+  local -a run_id_prefices=("${@-}")
 
   # TODO
   # Do something useful here...

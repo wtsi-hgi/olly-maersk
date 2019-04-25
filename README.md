@@ -236,12 +236,13 @@ overview of any subset of workflows that Cromwell has executed.
 
 Usage:
 
-    ./status.sh [WORKFLOW_ID_PREFIX...]
+    ./status.sh WORKFLOW_NAME [RUN_ID_PREFIX...]
 
-The `WORKFLOW_ID_PREFIX` can be omitted to show everything under the
-execution root directory, specified one-or-more times for particular
-workflows, and needn't be complete (i.e., it will only report on
-workflows whose IDs match the given prefix).
+Where `WORKFLOW_NAME` is the name of the workflow to report on. The
+`RUN_ID_PREFIX` can be omitted to show every run for the given workflow,
+or specified one-or-more times for particular runs; it needn't be
+complete (i.e., it will only report on runs whose IDs match the given
+prefix).
 
 By default, the script will look for the execution root directory in
 `cromwell-executions`, in the current working directory. This may be

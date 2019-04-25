@@ -232,6 +232,3 @@ API workflow root (e.g., `http://cromwell:8000/api/workflows/v1`)
 - [ ] Better management around Cromwell's assumptions about Docker
       submissions.
 - [ ] Better interface for user-defined mount points for containers.
-- [ ] Better (i.e., "less hacky") support for Singularity submissions.
-- [ ] Cache images built by Singularity, rather than littering them
-      throughout Cromwell's execution working directories.

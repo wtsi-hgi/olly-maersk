@@ -12,6 +12,13 @@ readonly TAB=$'\t'
 
 declare EXECUTION_ROOT="${EXECUTION_ROOT-$(pwd)/cromwell-executions}"
 
+stderr() {
+  local message="$*"
+
+  [[ -t 2 ]] && message="$(tput setaf 1)${message}$(tput sgr0)"
+  >&2 echo "${message}"
+}
+
 usage() {
   cat <<-EOF
 	Usage: ${PROG_NAME} WORKFLOW_NAME [ latest | all | RUN_ID_PREFIX... ]
@@ -46,10 +53,43 @@ lfs_job_status() {
   echo "${status:-${not_found}}"
 }
 
-# NOTES
-# stdout.background contains the LSF job ID, if it's been submitted
-# rc contains the exit code, if it's ended gracefully
-# stdout or stdout.lsf contains CPU time in seconds
+report() {
+  # Interrogate the Cromwell executions directory structure to glean the
+  # status of a workflow's run
+  local workflow_name="$1"
+  local run_id="$2"
+  local base_dir="${EXECUTION_ROOT}/${workflow_name}/${run_id}"
+
+  # NOTES
+  # stdout.background contains the LSF job ID, if it's been submitted
+  # rc contains the exit code, if it's ended gracefully
+  # stdout or stdout.lsf contains CPU time in seconds
+  # TODO
+  echo "${base_dir}"
+}
+
+get_run_ids() {
+  # Return a list of run IDs for the specified workflow, in reverse
+  # chronological order (latest first), matching the glob(s) provided
+  # (of which, there must be at least one)
+  local workflow_name="$1"
+  local -a globs
+
+  shift
+  while (( $# )); do
+    globs+=("-name" "$1")
+    shift
+    (( $# > 0 )) && globs+=("-o")
+  done
+
+  find "${EXECUTION_ROOT}/${workflow_name}" \
+       -mindepth 1 -maxdepth 1 -type d \
+       \( "${globs[@]}" \) \
+       -exec stat -c "%Y${TAB}%n" {} \; \
+  | sort -t"${TAB}" -k1nr,1 \
+  | cut -f2 \
+  | xargs -n1 basename
+}
 
 main() {
   if ! (( $# )); then
@@ -58,12 +98,49 @@ main() {
   fi
 
   local workflow_name="$1"
+  if ! [[ -d "${EXECUTION_ROOT}/${workflow_name}" ]]; then
+    stderr "No such workflow!"
+    usage
+    exit 1
+  fi
+
+  local latest_id="$(get_run_ids "${workflow_name}" "*" | head -1)"
+
+  local -a run_id_globs
 
   shift
-  local -a run_id_prefices=("${@-}")
+  while (( $# )); do
+    case "$1" in
+      "latest") run_id_globs+=("${latest_id}");;
+      "all")    run_id_globs+=("*");;
+      *)        run_id_globs+=("${1}*");;
+    esac
+    shift
+  done
 
-  # TODO
-  # Do something useful here...
+  # Echo headers to stderr if we're not piping the output
+  if [[ -t 1 ]] && [[ -t 2 ]]; then
+    (cat | paste -sd "${TAB}" -) >&2 <<-EOF
+		Workflow
+		Run
+		Task
+		Shard
+		Attempts
+		Status
+		Exit Code
+		Submission Time
+		Start Time
+		Finish Time
+		CPU Time
+		EOF
+  fi
+
+  local run_id
+  while read -r run_id; do
+    # Generate report for each matching run ID
+    report "${workflow_name}" "${run_id}"
+  done < <(get_run_ids "${workflow_name}" "${run_id_globs[@]-${latest_id-*}}") \
+  | tee >((( $(wc -l) == 0 )) && { stderr "No runs found!"; exit 1; })
 }
 
 main "$@"

@@ -14,13 +14,15 @@ declare EXECUTION_ROOT="${EXECUTION_ROOT-$(pwd)/cromwell-executions}"
 
 usage() {
   cat <<-EOF
-	Usage: ${PROG_NAME} WORKFLOW_NAME [RUN_ID_PREFIX...]
+	Usage: ${PROG_NAME} WORKFLOW_NAME [ latest | all | RUN_ID_PREFIX... ]
 	
 	Overview report on the status of Cromwell workflow executions, given by
-	the WORKFLOW_NAME. The RUN_ID_PREFIX can be omitted to show every run
-	for the given workflow, or specified one-or-more times for particular
-	runs; it needn't be complete (i.e., it will only report on runs whose
-	IDs match the given prefix).
+	the WORKFLOW_NAME. The remaining arguments allow you to specify the
+	particular runs; by default, the latest is shown (although you can be
+	explicit about this by using "latest"); alternatively, to show
+	everything, use "all"; finally, for arbitrary subsets, you can provide
+	one-or-more run ID prefixes (i.e., the script will match runs whose IDs
+	match the given prefixes).
 	EOF
 }
 

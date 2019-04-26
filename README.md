@@ -242,8 +242,8 @@ Where `WORKFLOW_NAME` is the name of the workflow to report on. The
 remaining arguments allow you to specify the particular runs; by
 default, the latest is shown (although you can be explicit about this by
 using `latest`); alternatively, to show everything, use `all`; finally,
-for arbitrary subsets, you can provide one-or-more run ID prefices
-(i.e., the script will match runs whose IDs match the given prefices).
+for arbitrary subsets, you can provide one-or-more run ID prefixes
+(i.e., the script will match runs whose IDs match the given prefixes).
 
 By default, the script will look for the execution root directory in
 `cromwell-executions`, in the current working directory. This may be

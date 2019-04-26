@@ -227,29 +227,48 @@ clean up failures:
 Where `CROMWELL_WORKFLOW_API_URL` is the full URL to Cromwell's RESTful
 API workflow root (e.g., `http://cromwell:8000/api/workflows/v1`)
 
-## Status Logging
+## Status Reporting
 
 The Cromwell executions directory can quickly become tiresome to
 navigate, in order to manually construct the status of your running or
-historical workflows. As such, the `status.sh` serves to give an
+historical workflows. As such, `reporting/status.sh` serves to give an
 overview of any subset of workflows that Cromwell has executed.
 
 Usage:
 
-    ./status.sh WORKFLOW_NAME [RUN_ID_PREFIX...]
+    ./status.sh WORKFLOW_NAME [ latest | all | RUN_ID_PREFIX... ]
 
 Where `WORKFLOW_NAME` is the name of the workflow to report on. The
-`RUN_ID_PREFIX` can be omitted to show every run for the given workflow,
-or specified one-or-more times for particular runs; it needn't be
-complete (i.e., it will only report on runs whose IDs match the given
-prefix).
+remaining arguments allow you to specify the particular runs; by
+default, the latest is shown (although you can be explicit about this by
+using `latest`); alternatively, to show everything, use `all`; finally,
+for arbitrary subsets, you can provide one-or-more run ID prefices
+(i.e., the script will match runs whose IDs match the given prefices).
 
 By default, the script will look for the execution root directory in
 `cromwell-executions`, in the current working directory. This may be
 overridden by setting the `EXECUTION_ROOT` environment variable.
 
+The output of this script will be a denormalised, tab-delimited table
+containing the following fields:
+
+* Workflow name
+* Run ID
+* Task name
+* Shard ID
+* Attempt count
+* Latest attempt's status
+* Latest attempt's exit code (if appropriate)
+* Latest attempt's submit time (if appropriate)
+* Latest attempt's execution start time (if appropriate)
+* Latest attempt's execution finish time (if appropriate)
+* Latest attempt's CPU time (if appropriate)
+
+Fields where no data currently exists will contain a dash (`-`).
+
 ## To Do...
 
+- [ ] Status executive summary script
 - [ ] Better management around Cromwell's assumptions about Docker
       submissions.
 - [ ] Better interface for user-defined mount points for containers.

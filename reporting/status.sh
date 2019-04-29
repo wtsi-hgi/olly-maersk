@@ -79,7 +79,7 @@ lfs_job_status() {
   # * We don't get CPU time this way because we extract it from our job
   #   log, which is not subject to LSF's log rotation.
   local job_id="$1"
-  local not_found="-${TAB}-${TAB}-${TAB}-"
+  local not_found="${NA}${TAB}${NA}${TAB}${NA}${TAB}${NA}"
 
   local headers="stat submit_time start_time finish_time delimiter='${TAB}'"
   local status="$(bjobs -noheader -o "${headers}" "${job_id}" 2>/dev/null)"
@@ -88,14 +88,44 @@ lfs_job_status() {
 }
 
 report_job() {
-  # TODO
+  # Get the status of a job
   local exec_dir="$1"
-  echo "${exec_dir}"
 
-  # NOTES
-  # stdout.background contains the LSF job ID, if it's been submitted
-  # rc contains the exit code, if it's ended gracefully
-  # stdout or stdout.lsf contains CPU time in seconds
+  local submit_log="${exec_dir}/stdout.background"
+  local job_id="$(
+    grep -Po '(?<=Job <)\d+(?=>)' "${submit_log}" 2>/dev/null \
+    || echo "${NA}"
+  )"
+
+  local lsf_status="${NA}"
+  local submit_time="${NA}"
+  local start_time="${NA}"
+  local finish_time="${NA}"
+  if [[ "${job_id}" != "${NA}" ]]; then
+    read -r lsf_status submit_time start_time finish_time < <(lfs_job_status "${job_id}")
+  fi
+
+  local exit_code="${NA}"
+  if [[ -e "${exec_dir}/rc" ]]; then
+    exit_code="$(< "${exec_dir}/rc")"
+  fi
+
+  local job_log="${exec_dir}/stdout$( [[ -e "${exec_dir}/stdout.lsf" ]] && echo ".lsf" )"
+  local cpu_time="$(
+    grep -F "    CPU time :" "${job_log}" 2>/dev/null \
+    | grep -Po '\d+(\.\d+)?(?= sec)' \
+    || echo "${NA}"
+  )"
+
+  (cat | paste -sd "${TAB}" -) <<-EOF
+	${job_id}
+	${lsf_status}
+	${exit_code}
+	${submit_time}
+	${start_time}
+	${finish_time}
+	${cpu_time}
+	EOF
 }
 
 report_shard() {

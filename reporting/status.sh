@@ -103,7 +103,7 @@ report_job() {
   local start_time="${NA}"
   local finish_time="${NA}"
   if [[ "${job_id}" != "${NA}" ]]; then
-    read -r lsf_status submit_time start_time finish_time < <(lfs_job_status "${job_id}")
+    IFS="${TAB}" read -r lsf_status submit_time start_time finish_time < <(lfs_job_status "${job_id}")
   fi
 
   local exit_code="${NA}"

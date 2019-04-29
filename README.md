@@ -263,6 +263,7 @@ containing the following fields:
 * Latest attempt's submit time (if available)
 * Latest attempt's execution start time (if available)
 * Latest attempt's execution finish time (if available)
+* Latest attempt's wall time (if available)
 * Latest attempt's CPU time (if available)
 
 Fields where no data currently exists will contain a dash (`-`).

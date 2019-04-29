@@ -118,6 +118,11 @@ report_job() {
     || echo "${NA}"
   )"
 
+  local wall_time="${NA}"
+  if [[ "${start_time}" != "${NA}" ]] && [[ "${finish_time}" != "${NA}" ]]; then
+    wall_time="$(( $(date -d "${finish_time}" +%s) - $(date -d "${start_time}" +%s) ))"
+  fi
+
   (cat | paste -sd "${TAB}" -) <<-EOF
 	${job_id}
 	${lsf_status}
@@ -125,6 +130,7 @@ report_job() {
 	${submit_time}
 	${start_time}
 	${finish_time}
+	${wall_time}
 	${cpu_time}
 	EOF
 }
@@ -209,6 +215,7 @@ main() {
 		Submission Time
 		Start Time
 		Finish Time
+		Wall Time
 		CPU Time
 		EOF
   fi

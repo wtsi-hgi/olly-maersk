@@ -55,7 +55,8 @@ get_children() {
        -exec stat -c "%Y${TAB}%n" {} \; \
   | sort -t"${TAB}" -k1"${order}",1 \
   | cut -f2 \
-  | xargs -n1 basename
+  | xargs -n1 basename \
+  2>/dev/null
 }
 
 prepend() {

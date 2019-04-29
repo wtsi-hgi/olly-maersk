@@ -9,6 +9,7 @@ readonly BINARY="$(readlink -fn "$0")"
 readonly PROG_NAME="$(basename "${BINARY}")"
 
 readonly TAB=$'\t'
+readonly NA="-"
 
 declare EXECUTION_ROOT="${EXECUTION_ROOT-$(pwd)/cromwell-executions}"
 
@@ -31,6 +32,36 @@ usage() {
 	one-or-more run ID prefixes (i.e., the script will match runs whose IDs
 	match the given prefixes).
 	EOF
+}
+
+get_children() {
+  # Return the list of top-level directories in a given directory,
+  # sorted by modification date (either ascending or descending),
+  # matching the glob(s) provided (of which, there must be at least one)
+  local directory="$1"
+  local order="n$([[ "$2" == "desc" ]] && echo "r")"
+  local -a globs
+
+  shift 2
+  while (( $# )); do
+    globs+=("-name" "$1")
+    shift
+    (( $# > 0 )) && globs+=("-o")
+  done
+
+  find "${directory}" \
+       -mindepth 1 -maxdepth 1 -type d \
+       \( "${globs[@]}" \) \
+       -exec stat -c "%Y${TAB}%n" {} \; \
+  | sort -t"${TAB}" -k1"${order}",1 \
+  | cut -f2 \
+  | xargs -n1 basename
+}
+
+prepend() {
+  # Prepend stdout with additional columns
+  local columns="$(IFS="${TAB}"; echo "$*")"
+  awk -v C="${columns}" 'BEGIN { FS = OFS = "\t" } { print C, $0 }'
 }
 
 lfs_job_status() {
@@ -56,42 +87,41 @@ lfs_job_status() {
   echo "${status:-${not_found}}"
 }
 
+report_shard() {
+  # Report on the specified shard (non-scattered jobs still come through
+  # here, with a shard ID of "-")
+  local base_dir="$1"
+  local shard="$2"
+
+  # TODO
+  echo "${base_dir}/${shard}"
+}
+
 report() {
   # Interrogate the Cromwell executions directory structure to glean the
-  # status of a workflow's run
+  # status of a given workflow's run
   local workflow_name="$1"
   local run_id="$2"
   local base_dir="${EXECUTION_ROOT}/${workflow_name}/${run_id}"
+
+  local task_name
+  local shard_id
+  while read -r task_name; do
+    while read -r shard_id; do
+      report_shard "${base_dir}/${task_name}" "${shard_id}"
+    done < <(
+      get_children "${base_dir}/${task_name}" asc "shard-*" \
+      | grep -Po '(?<=shard-)\d+' \
+      || echo "${NA}"
+    ) \
+    | prepend "${task_name#call-}"
+  done < <(get_children "${base_dir}" asc "call-*") \
+  | prepend "${workflow_name}" "${run_id}"
 
   # NOTES
   # stdout.background contains the LSF job ID, if it's been submitted
   # rc contains the exit code, if it's ended gracefully
   # stdout or stdout.lsf contains CPU time in seconds
-  # TODO
-  echo "${base_dir}"
-}
-
-get_run_ids() {
-  # Return a list of run IDs for the specified workflow, in reverse
-  # chronological order (latest first), matching the glob(s) provided
-  # (of which, there must be at least one)
-  local workflow_name="$1"
-  local -a globs
-
-  shift
-  while (( $# )); do
-    globs+=("-name" "$1")
-    shift
-    (( $# > 0 )) && globs+=("-o")
-  done
-
-  find "${EXECUTION_ROOT}/${workflow_name}" \
-       -mindepth 1 -maxdepth 1 -type d \
-       \( "${globs[@]}" \) \
-       -exec stat -c "%Y${TAB}%n" {} \; \
-  | sort -t"${TAB}" -k1nr,1 \
-  | cut -f2 \
-  | xargs -n1 basename
 }
 
 main() {
@@ -101,13 +131,14 @@ main() {
   fi
 
   local workflow_name="$1"
-  if ! [[ -d "${EXECUTION_ROOT}/${workflow_name}" ]]; then
+  local workflow_dir="${EXECUTION_ROOT}/${workflow_name}"
+  if ! [[ -d "${workflow_dir}" ]]; then
     stderr "No such workflow!"
     usage
     exit 1
   fi
 
-  local latest_id="$(get_run_ids "${workflow_name}" "*" | head -1)"
+  local latest_id="$(get_children "${workflow_dir}" desc "*" | head -1)"
 
   local -a run_id_globs
 
@@ -129,6 +160,7 @@ main() {
 		Task
 		Shard
 		Attempts
+		Job ID
 		Status
 		Exit Code
 		Submission Time
@@ -142,7 +174,7 @@ main() {
   while read -r run_id; do
     # Generate report for each matching run ID
     report "${workflow_name}" "${run_id}"
-  done < <(get_run_ids "${workflow_name}" "${run_id_globs[@]-${latest_id-*}}") \
+  done < <(get_children "${workflow_dir}" desc "${run_id_globs[@]-${latest_id-*}}") \
   | tee >((( $(wc -l) == 0 )) && { stderr "No runs found!"; exit 1; })
 }
 

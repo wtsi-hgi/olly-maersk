@@ -255,14 +255,15 @@ containing the following fields:
 * Workflow name
 * Run ID
 * Task name
-* Shard ID
+* Shard ID (where appropriate)
 * Attempt count
-* Latest attempt's status
-* Latest attempt's exit code (if appropriate)
-* Latest attempt's submit time (if appropriate)
-* Latest attempt's execution start time (if appropriate)
-* Latest attempt's execution finish time (if appropriate)
-* Latest attempt's CPU time (if appropriate)
+* Latest attempt's job ID (if available)
+* Latest attempt's status (if available)
+* Latest attempt's exit code (if available)
+* Latest attempt's submit time (if available)
+* Latest attempt's execution start time (if available)
+* Latest attempt's execution finish time (if available)
+* Latest attempt's CPU time (if available)
 
 Fields where no data currently exists will contain a dash (`-`).
 

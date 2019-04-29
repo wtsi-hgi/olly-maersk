@@ -87,14 +87,31 @@ lfs_job_status() {
   echo "${status:-${not_found}}"
 }
 
+report_job() {
+  # TODO
+  local exec_dir="$1"
+  echo "${exec_dir}"
+
+  # NOTES
+  # stdout.background contains the LSF job ID, if it's been submitted
+  # rc contains the exit code, if it's ended gracefully
+  # stdout or stdout.lsf contains CPU time in seconds
+}
+
 report_shard() {
-  # Report on the specified shard (non-scattered jobs still come through
-  # here, with a shard ID of "-")
+  # Report on the specified shard
+  # n.b., Scalar jobs still come through here, with a shard ID of "-"
   local base_dir="$1"
   local shard="$2"
 
-  # TODO
-  echo "${base_dir}/${shard}"
+  local shard_dir="${base_dir}"
+  [[ "${shard}" != "${NA}" ]] && shard_dir="${shard_dir}/shard-${shard}"
+
+  local -i attempts=$(( $(get_children "${shard_dir}" asc "attempt-*" | wc -l) + 1 ))
+  local attempt_dir="$( (( attempts > 1 )) && echo "attempt-${attempts}/")"
+
+  local exec_dir="${shard_dir}/${attempt_dir}execution"
+  report_job "${exec_dir}" | prepend "${shard}" "${attempts}"
 }
 
 report() {
@@ -117,11 +134,6 @@ report() {
     | prepend "${task_name#call-}"
   done < <(get_children "${base_dir}" asc "call-*") \
   | prepend "${workflow_name}" "${run_id}"
-
-  # NOTES
-  # stdout.background contains the LSF job ID, if it's been submitted
-  # rc contains the exit code, if it's ended gracefully
-  # stdout or stdout.lsf contains CPU time in seconds
 }
 
 main() {

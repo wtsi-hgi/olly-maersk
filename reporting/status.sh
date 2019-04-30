@@ -12,6 +12,7 @@ readonly TAB=$'\t'
 readonly NA="-"
 
 declare EXECUTION_ROOT="${EXECUTION_ROOT-$(pwd)/cromwell-executions}"
+declare EXPECTATIONS="${EXPECTATIONS-$(pwd)/.expectations}"
 
 stderr() {
   local message="$*"
@@ -151,6 +152,22 @@ report_shard() {
   report_job "${exec_dir}" | prepend "${shard}" "${attempts}"
 }
 
+report_expectation() {
+  # Fetch the expected number of shards for a given workflow task
+  local workflow_name="$1"
+  local task_name="$2"
+
+  (
+    if [[ -x "${EXPECTATIONS}" ]]; then
+      "${EXPECTATIONS}" 2>/dev/null
+    elif [[ -e "${EXPECTATIONS}" ]]; then
+      cat "${EXPECTATIONS}"
+    fi
+  ) \
+  | grep -Pom1 "(?<=^${workflow_name}${TAB}${task_name}${TAB}).+$" \
+  || echo "${NA}"
+}
+
 report() {
   # Interrogate the Cromwell executions directory structure to glean the
   # status of a given workflow's run
@@ -158,17 +175,23 @@ report() {
   local run_id="$2"
   local base_dir="${EXECUTION_ROOT}/${workflow_name}/${run_id}"
 
+  local task_dir
   local task_name
   local shard_id
-  while read -r task_name; do
+  local shard_expectation
+  while read -r task_dir; do
+    task_name="${task_dir#call-}"
+
     while read -r shard_id; do
-      report_shard "${base_dir}/${task_name}" "${shard_id}"
+      shard_expectation="$(report_expectation "${workflow_name}" "${task_name}")"
+      report_shard "${base_dir}/${task_dir}" "${shard_id}/${shard_expectation}"
     done < <(
-      get_children "${base_dir}/${task_name}" asc "shard-*" \
+      get_children "${base_dir}/${task_dir}" asc "shard-*" \
       | grep -Po '(?<=shard-)\d+' \
       || echo "${NA}"
     ) \
-    | prepend "${task_name#call-}"
+    | prepend "${task_name}"
+
   done < <(get_children "${base_dir}" asc "call-*") \
   | prepend "${workflow_name}" "${run_id}"
 }

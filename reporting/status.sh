@@ -123,7 +123,7 @@ report_job() {
     wall_time="$(( $(date -d "${finish_time}" +%s) - $(date -d "${start_time}" +%s) ))"
   fi
 
-  (cat | paste -sd "${TAB}" -) <<-EOF
+  paste -sd "${TAB}" - <<-EOF
 	${job_id}
 	${lsf_status}
 	${exit_code}
@@ -203,7 +203,7 @@ main() {
 
   # Echo headers to stderr if we're not piping the output
   if [[ -t 1 ]] && [[ -t 2 ]]; then
-    (cat | paste -sd "${TAB}" -) >&2 <<-EOF
+    paste -sd "${TAB}" - >&2 <<-EOF
 		Workflow
 		Run
 		Task

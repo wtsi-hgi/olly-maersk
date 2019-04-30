@@ -268,6 +268,36 @@ containing the following fields:
 
 Fields where no data currently exists will contain a dash (`-`).
 
+### Sharding Expectations
+
+The status report cannot know the expected number of shards for a given
+workflow task, as this information is determined upstream by Cromwell's
+parsing and execution of the respective WDL. To this end, the reporting
+script will look for a file named `.expectations` in the working
+directory from which it's run, to provide additional annotations,
+insofar as they exist (i.e., if this file is not present, or incomplete,
+then the report will reflect that). The `EXPECTATIONS` environment
+variable may be set to override the location of this file.
+
+Said file may take two forms:
+
+1. A plain-text file, tab-delimited with one record per line, with
+   the following fields:
+
+   * Workflow name, per the workflow WDL;
+   * Task name, per the workflow WDL;
+   * Expected number of shards (or `-` for a scalar job, which is
+     assumed for missing records).
+
+   For example:
+
+       JointCalling    SplitIntervalList    -
+       JointCalling    ImportGVCFs          50
+       JointCalling    GenotypeGVCFs        50
+
+2. An executable (i.e., with the `+x` permission bit set) that generates
+   the above to standard out, taking no input arguments.
+
 ## To Do...
 
 - [ ] Status executive summary script

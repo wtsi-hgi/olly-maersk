@@ -141,6 +141,7 @@ report_shard() {
   # n.b., Scalar jobs still come through here, with a shard ID of "-"
   local base_dir="$1"
   local shard="$2"
+  local shard_expectation="$3"
 
   local shard_dir="${base_dir}"
   [[ "${shard}" != "${NA}" ]] && shard_dir="${shard_dir}/shard-${shard}"
@@ -149,7 +150,7 @@ report_shard() {
   local attempt_dir="$( (( attempts > 1 )) && echo "attempt-${attempts}/")"
 
   local exec_dir="${shard_dir}/${attempt_dir}execution"
-  report_job "${exec_dir}" | prepend "${shard}" "${attempts}"
+  report_job "${exec_dir}" | prepend "${shard}/${shard_expectation}" "${attempts}"
 }
 
 report_expectation() {
@@ -184,7 +185,7 @@ report() {
 
     while read -r shard_id; do
       shard_expectation="$(report_expectation "${workflow_name}" "${task_name}")"
-      report_shard "${base_dir}/${task_dir}" "${shard_id}/${shard_expectation}"
+      report_shard "${base_dir}/${task_dir}" "${shard_id}" "${shard_expectation}"
     done < <(
       get_children "${base_dir}/${task_dir}" asc "shard-*" \
       | grep -Po '(?<=shard-)\d+' \

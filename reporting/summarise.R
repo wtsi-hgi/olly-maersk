@@ -30,7 +30,7 @@ group_by(
   workflow, run_id, task) %>%
 summarise(
   complete = sum(case_when(exit_code == 0 ~ 1), na.rm = TRUE),
-  complete_pc = 100 * sum(case_when(exit_code == 0 ~ 1), na.rm = TRUE) / max(coalesce(expected, 1L)),
+  complete_pc = 100 * complete / max(coalesce(expected, n())),
   cpu_mean = mean(case_when(exit_code == 0 ~ cpu_time), na.rm = TRUE),
   cpu_sd = sd(case_when(exit_code == 0 ~ cpu_time), na.rm = TRUE),
 

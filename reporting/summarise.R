@@ -3,19 +3,27 @@
 # Cromwell Executions Status Summariser
 # Christopher Harrison <ch12@sanger.ac.uk>
 
-# FIXME R throws up all over stderr; suppress this output
+if (!all(c("readr", "tidyr", "dplyr") %in% rownames(installed.packages()))) {
+  # Bailout if packages aren't installed
+  cat("tidyverse packages not found!\n", file = stderr())
+  quit(status = 1)
+}
 
-require(readr)
-require(tidyr)
-require(dplyr)
+# FIXME? Is there a better way to suppress R's verbosity
+suppressMessages(require(readr))
+suppressMessages(require(tidyr))
+suppressMessages(require(dplyr))
 
 columns <- c("workflow", "run_id", "task", "shards",
              "attempts", "job_id", "status", "exit_code",
              "submit_ts", "start_ts", "end_ts", "wall_time",
              "cpu_time")
 
+stdin <- file("stdin", open = "r")
+on.exit(close(stdin))
+
 summarised <- read_tsv(
-  readLines(file("stdin", open = "r")),
+  readLines(stdin),
   col_names = columns) %>%
 separate(
   shards, c("shards", "expected"), sep = "/") %>%

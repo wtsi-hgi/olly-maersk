@@ -222,7 +222,7 @@ failed).
 This script ought to be run periodically (e.g., an hourly `cron` job) to
 clean up failures:
 
-    ./zombie-killer.sh CROMWELL_WORKFLOW_API_URL
+    zombie-killer.sh CROMWELL_WORKFLOW_API_URL
 
 Where `CROMWELL_WORKFLOW_API_URL` is the full URL to Cromwell's RESTful
 API workflow root (e.g., `http://cromwell:8000/api/workflows/v1`)
@@ -236,7 +236,7 @@ overview of any subset of workflows that Cromwell has executed.
 
 Usage:
 
-    ./status.sh WORKFLOW_NAME [ latest | all | RUN_ID_PREFIX... ]
+    status.sh WORKFLOW_NAME [ latest | all | RUN_ID_PREFIX... ]
 
 Where `WORKFLOW_NAME` is the name of the workflow to report on. The
 remaining arguments allow you to specify the particular runs; by
@@ -298,9 +298,37 @@ Said file may take two forms:
 2. An executable (i.e., with the `+x` permission bit set) that generates
    the above to standard out, taking no input arguments.
 
+### Executive Summary
+
+The execution status, output from the [above script](#status-reporting),
+can be summarised using `reporting/summarise.R`, which reads from
+standard input. This requires [R](https://www.r-project.org/) and
+[tidyverse](https://www.tidyverse.org/) to be installed.
+
+    status.sh <OPTIONS...> | summarise.R
+
+**Note** The summarisation will not work correctly without an
+[`.expectations` file](#sharding-expectations).
+
+The output will be a tab-delimited table, grouped by workflow name, run
+ID and task name, with the following fields:
+
+* Workflow name
+* Run ID
+* Task name
+* Completed shards
+* Completed shards, as a percentage
+* Mean CPU time for completed shards
+* Standard deviation of CPU time for completed shards
+* Pending shards
+* Running shards
+* Failed shards
+* Shards in any other state
+
+(n.b., Scalar tasks are considered to have one shard.)
+
 ## To Do...
 
-- [ ] Status executive summary script
 - [ ] Better management around Cromwell's assumptions about Docker
       submissions.
 - [ ] Better interface for user-defined mount points for containers.

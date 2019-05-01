@@ -316,14 +316,12 @@ ID and task name, with the following fields:
 * Workflow name
 * Run ID
 * Task name
-* Completed shards
-* Completed shards, as a percentage
-* Mean CPU time for completed shards
-* Standard deviation of CPU time for completed shards
-* Pending shards
-* Running shards
-* Failed shards
-* Shards in any other state
+* Completed shards (count and as a percentage)
+* Mean and standard deviation of CPU time for completed shards
+* Pending shard count
+* Running shard count
+* Failed shard count
+* Count of shards in any other LSF state
 
 (n.b., Scalar tasks are considered to have one shard.)
 

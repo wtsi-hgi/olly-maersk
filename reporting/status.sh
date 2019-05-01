@@ -229,7 +229,7 @@ main() {
   if [[ -t 1 ]] && [[ -t 2 ]]; then
     paste -sd "${TAB}" - >&2 <<-EOF
 		Workflow
-		Run
+		Run ID
 		Task
 		Shard
 		Attempts

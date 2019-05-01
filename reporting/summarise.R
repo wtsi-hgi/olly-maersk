@@ -38,8 +38,27 @@ summarise(
   running = sum(case_when(status == "RUN" ~ 1), na.rm = TRUE),
   failed = sum(case_when(status == "EXIT" | exit_code != 0 ~ 1), na.rm = TRUE),
   other = sum(case_when(is.na(exit_code) & ! status %in% c("DONE", "EXIT", "RUN", "PEND") ~ 1), na.rm = TRUE)
-)
+) %>%
+mutate(
+  # Nicer formatting for completed shards and CPU time
+  complete = sprintf("%d (%.1f%%)", complete, complete_pc),
+  cpu_time = if_else(is.na(cpu_mean),
+               NA_character_,
+               sprintf("%.1f%s min", cpu_mean / 60,
+                                     if_else(is.na(cpu_sd), "", sprintf(" +/- %.1f", cpu_sd / 60))))
+) %>%
+select(
+  workflow, run_id, task, complete, cpu_time, pending, running, failed, other)
 
-# TODO Pretty-print headers to stderr
-# TODO? Number formatting
+
+if (isatty(stdout()) & isatty(stderr())) {
+  # Write headers to stderr if we're outputting to a terminal
+  output_headers <- c("Workflow", "Run ID", "Task", "Complete",
+                      "CPU Time", "Pending", "Running", "Failed",
+                      "Other")
+
+  cat(c(output_headers, "\n"), sep = "\t", file = stderr())
+}
+
+# Final output
 cat(format_tsv(summarised, na = "-", col_names = FALSE, quote_escape = FALSE))

@@ -127,8 +127,8 @@ export PATH="/path/to/submission/shim:${PATH}"
 Putting these all together, to run the workflow, we arrive at the
 following command:
 
-    java -Dconfig.file=example.conf -jar /path/to/cromwell.jar \
-         run -i example.inputs.json -o example.options.json example.wdl
+    java -Dconfig.file=eg/example.conf -jar /path/to/cromwell.jar \
+         run -i eg/inputs.json -o eg/options.json eg/example.wdl
 
 This runs Cromwell directly, rather than in server-mode, without an
 external database to keep its state. The output of the job will be

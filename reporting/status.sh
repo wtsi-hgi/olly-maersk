@@ -115,7 +115,8 @@ report_job() {
   local job_log="${exec_dir}/stdout$( [[ -e "${exec_dir}/stdout.lsf" ]] && echo ".lsf" )"
   local cpu_time="$(
     grep -F "    CPU time :" "${job_log}" 2>/dev/null \
-    | grep -Po '\d+(\.\d+)?(?= sec)' \
+    | tac \
+    | grep -Pom1 '\d+(\.\d+)?(?= sec)' \
     || echo "${NA}"
   )"
 

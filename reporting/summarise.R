@@ -22,19 +22,17 @@ stdin <- file("stdin", open = "r")
 on.exit(close(stdin))
 
 summarised <- read_tsv(
-  readLines(stdin), col_names = columns
+  # TODO Parse LSF's timestamps for submit, start and end times
+  readLines(stdin),
+  col_names = columns, col_types = "cccciccicccdd", na = "-"
 ) %>%
 separate(
   # Split the shards column by the slash delimiter
   shards, c("shards", "expected"), sep = "/"
 ) %>%
 type_convert(
-  cols(shards    = col_integer(),
-       expected  = col_integer(),
-       attempts  = col_integer(),
-       job_id    = col_character(),
-       exit_code = col_integer()),
-  na = "-"
+  # Convert the newly separated columns into the correct types
+  cols(shards = col_integer(), expected = col_integer()), na = "-"
 ) %>%
 group_by(
   workflow, run_id, task

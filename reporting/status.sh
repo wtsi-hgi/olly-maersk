@@ -107,10 +107,10 @@ report_job() {
     IFS="${TAB}" read -r lsf_status submit_time start_time finish_time < <(lfs_job_status "${job_id}")
   fi
 
-  local exit_code="${NA}"
-  if [[ -e "${exec_dir}/rc" ]]; then
-    exit_code="$(< "${exec_dir}/rc")"
-  fi
+  local exit_code="$(
+    grep -P '\d+' "${exec_dir}/rc" 2>/dev/null \
+    || echo "${NA}"
+  )"
 
   local job_log="${exec_dir}/stdout$( [[ -e "${exec_dir}/stdout.lsf" ]] && echo ".lsf" )"
   local cpu_time="$(
